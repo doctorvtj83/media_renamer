@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Dev files directory
+testfiles/
+
+#Jupyter
+dev_notebook.ipynb
