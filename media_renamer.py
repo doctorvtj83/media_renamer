@@ -66,9 +66,10 @@ class Renamer:
             print(file['Name'])
             file['Location'] = False
             
-            if file["Geo"]:    
-                coordinates = self.get_coordinates(file["Geo"])
-                file['Location'] = locator.reverse(coordinates)
+            if file["Geo"]:
+                if #check if needed keys are contained :
+                    coordinates = self.get_coordinates(file["Geo"])
+                    file['Location'] = locator.reverse(coordinates)
 
 
     def create_filename(self):
