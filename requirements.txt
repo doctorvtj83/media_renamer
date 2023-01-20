@@ -1,5 +1,4 @@
 pandas
 pillow
 pillow-heif
-jupyter
-notebook
+geopy
