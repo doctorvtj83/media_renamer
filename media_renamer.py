@@ -5,13 +5,20 @@ from PIL.ExifTags import TAGS, GPSTAGS
 from pillow_heif import HeifImagePlugin
 import geopy
 from geopy.geocoders import Nominatim
+from datetime import datetime as dt
+import platform
 
 class Renamer:
     def __init__(self,path):
         self.path = path
+        self.target_tags = set(['GPSLatitude','GPSLatitudeRef','GPSLongitude','GPSLongitudeRef'])
+        self.dateformat = '%Y:%m:%d %H:%M:%S'
 
     def get_files(self):
         self.files = [ {'Name': el, 'Type' : os.path.splitext(el)[1].lower()} for el in os.listdir(self.path)]
+        print(f"{len(self.files)} files found in directory")
+        self.no_files = len(self.files)
+        print("")
 
     def get_labeled_exif(self,exif):
         return {
@@ -37,7 +44,11 @@ class Renamer:
         return str(dd)
 
     def retrieve_geo_and_time_from_meta(self):
+        print("Retrieving Creation date and location")
+        i = 0
         for file in self.files:
+            i+=1
+            print(f"File {i}/{self.no_files}",end='\r')
             file["CreateTimestamp"] = False
             file["Geo"] = False
             
@@ -48,11 +59,14 @@ class Renamer:
                     if exif:
                         labeled_exif = self.get_labeled_exif(exif)
                         if 'DateTime' in labeled_exif:
-                            file["CreateTimestamp"] = labeled_exif['DateTime']
+                            file["CreateTimestamp"] = dt.strptime(labeled_exif['DateTime'],self.dateformat)
                         
                         geo = self.get_geo(exif)
                         if geo:
                             file["Geo"] = geo
+        
+        print("")
+        print("")
 
     def get_coordinates(self,gps_info):
         return [
@@ -63,17 +77,65 @@ class Renamer:
     def get_location(self):
         locator = Nominatim(user_agent='myGeocoder')
         for file in self.files:
-            print(file['Name'])
             file['Location'] = False
+            file['City'] = False
+            file['County'] = False
             
             if file["Geo"]:
-                if #check if needed keys are contained :
+                if self.target_tags.issubset(set(file['Geo'].keys())):
                     coordinates = self.get_coordinates(file["Geo"])
-                    file['Location'] = locator.reverse(coordinates)
+                    loc = locator.reverse(coordinates)
+                    file['Location'] = str(loc).replace(",","").replace(" ","_")
+                    if 'address' in loc.raw:
+                        if 'city' in loc.raw['address']:
+                            file['City'] = loc.raw['address']['city']
 
+                        if 'county' in loc.raw['address']:
+                            file['County'] = loc.raw['address']['county']
+
+    def file_create_date(self,path_to_file):
+        if platform.system() == 'Windows':
+            return os.path.getctime(path_to_file)
+        else:
+            stat = os.stat(path_to_file)
+            try:
+                return stat.st_birthtime
+            except AttributeError:
+                # We're probably on Linux. No easy way to get creation dates here,
+                # so we'll settle for when its content was last modified.
+                return stat.st_mtime
+
+    def create_date_from_files(self):
+        print("Creating remaining dates from filesystem")
+        i = 0
+        for file in self.files:
+            i += 1
+            print(f"File {i}/{self.no_files}",end='\r')
+            fp = self.path + '/' +file['Name']
+            if not file["CreateTimestamp"]:
+                file["CreateTimestamp"] = dt.fromtimestamp(self.file_create_date(fp))
+
+        print("")
+        print("")
 
     def create_filename(self):
-        pass   
+        for file in self.files:
+            file["New_Name"] = False
+            if file["CreateTimestamp"]:
+                cd = file["CreateTimestamp"]
+                new_name = f"{cd.year}-{cd.month}-{cd.day}-{cd.hour}.{cd.minute} - "
+                if file['Type'] in ['.jpg','.jpeg','.png','.heic']:
+                    if file['Location']:
+                        new_name = new_name + file['Location']
+                    else:
+                        new_name = new_name + "Foto"
+                    
+                    file["New_Name"] = new_name + file['Type']
+                
+                elif file['Type'] in ['.mov','.mp4','.mp4','.m4v']:
+                    new_name = new_name + 'Film'
+                    file["New_Name"] = new_name + file['Type']
+
         # 2021-10-13-14.35 - dateiname_beispiel.pdf
 
 if __name__ == "__main__":
@@ -90,5 +152,10 @@ if __name__ == "__main__":
     R.get_files()
     R.retrieve_geo_and_time_from_meta()
     R.get_location()
+    R.create_date_from_files()
+    R.create_filename()
 
-    print(R.files)
+    print("Program Finished")
+
+    for f in R.files:
+        print((f['Name'],f["New_Name"]))
