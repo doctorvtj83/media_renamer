@@ -7,6 +7,7 @@ import geopy
 from geopy.geocoders import Nominatim
 from datetime import datetime as dt
 import platform
+import pandas as pd
 
 class Renamer:
     def __init__(self,path):
@@ -137,6 +138,12 @@ class Renamer:
                     file["New_Name"] = new_name + file['Type']
 
         # 2021-10-13-14.35 - dateiname_beispiel.pdf
+    def rename_files(self):
+        for f in self.files:
+            if f["New_Name"]:
+                old = self.path + f['Name']
+                new = self.path + f["New_Name"]
+                os.rename(old,new)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -145,6 +152,8 @@ if __name__ == "__main__":
     )
 
     parser.add_argument('-p','--path',required=True)
+    parser.add_argument('--dry_run',default=True,required=False)
+    parser.add_argument('--results',default='./output',required=False)
 
     args = parser.parse_args()
 
@@ -155,7 +164,11 @@ if __name__ == "__main__":
     R.create_date_from_files()
     R.create_filename()
 
-    print("Program Finished")
+    if args.dry_run:
+        df = pd.DataFrame.from_records(R.files)
+        fp = args.results + '.csv'
+        df.to_csv(fp)
+    else:
+        R.rename_files()
 
-    for f in R.files:
-        print((f['Name'],f["New_Name"]))
+print("Program Finished")
