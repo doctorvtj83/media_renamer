@@ -141,8 +141,8 @@ class Renamer:
     def rename_files(self):
         for f in self.files:
             if f["New_Name"]:
-                old = self.path + f['Name']
-                new = self.path + f["New_Name"]
+                old = self.path + '/' + f['Name']
+                new = self.path + '/' + f["New_Name"]
                 os.rename(old,new)
 
 if __name__ == "__main__":
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument('-p','--path',required=True)
-    parser.add_argument('--dry_run',default=True,required=False)
+    parser.add_argument('--dry_run',default='True',required=False)
     parser.add_argument('--results',default='./output',required=False)
 
     args = parser.parse_args()
@@ -164,11 +164,13 @@ if __name__ == "__main__":
     R.create_date_from_files()
     R.create_filename()
 
-    if args.dry_run:
+    if args.dry_run == 'True':
         df = pd.DataFrame.from_records(R.files)
         fp = args.results + '.csv'
         df.to_csv(fp)
     else:
+        print("Renaming files")
+        print("")
         R.rename_files()
 
 print("Program Finished")
