@@ -130,6 +130,10 @@ dmypy.json
 
 # Dev files directory
 testfiles/
+testfiles1/
 
 #Jupyter
 dev_notebook.ipynb
+
+#Output files for control
+*.csv
