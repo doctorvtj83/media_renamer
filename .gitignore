@@ -130,7 +130,7 @@ dmypy.json
 
 # Dev files directory
 testfiles/
-festfiles1/
+testfiles1/
 
 #Jupyter
 dev_notebook.ipynb
