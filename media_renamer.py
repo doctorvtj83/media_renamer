@@ -96,7 +96,7 @@ class Renamer:
 
     def file_create_date(self,path_to_file):
         if platform.system() == 'Windows':
-            return os.path.getctime(path_to_file)
+            return os.path.getmtime(path_to_file)
         else:
             stat = os.stat(path_to_file)
             try:
