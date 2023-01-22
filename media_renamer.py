@@ -8,6 +8,7 @@ from geopy.geocoders import Nominatim
 from datetime import datetime as dt
 import platform
 import pandas as pd
+import time
 
 class Renamer:
     def __init__(self,path):
@@ -85,14 +86,20 @@ class Renamer:
             if file["Geo"]:
                 if self.target_tags.issubset(set(file['Geo'].keys())):
                     coordinates = self.get_coordinates(file["Geo"])
-                    loc = locator.reverse(coordinates)
-                    file['Location'] = str(loc).replace(",","").replace(" ","_")
-                    if 'address' in loc.raw:
-                        if 'city' in loc.raw['address']:
-                            file['City'] = loc.raw['address']['city']
+                    try:
+                        loc = locator.reverse(coordinates)
+                        file['Location'] = str(loc).replace(",","").replace(" ","_")
+                        if 'address' in loc.raw:
+                            if 'city' in loc.raw['address']:
+                                file['City'] = loc.raw['address']['city']
 
-                        if 'county' in loc.raw['address']:
-                            file['County'] = loc.raw['address']['county']
+                            if 'county' in loc.raw['address']:
+                                file['County'] = loc.raw['address']['county']
+                            
+                        time.sleep(1)
+                    except:
+                        print(f"Request timeout for {file['Name']}")
+
 
     def file_create_date(self,path_to_file):
         if platform.system() == 'Windows':
