@@ -77,8 +77,12 @@ class Renamer:
             ]
 
     def get_location(self):
+        print("Retrieving Location name from Open Street Map")
         locator = Nominatim(user_agent='myGeocoder')
+        i = 0
         for file in self.files:
+            i+=1
+            print(f"File {i}/{self.no_files}",end='\r')
             file['Location'] = False
             file['City'] = False
             file['County'] = False
@@ -101,9 +105,12 @@ class Renamer:
                         print(f"Request timeout for {file['Name']}")
 
 
+        print("")
+        print("")
+
     def file_create_date(self,path_to_file):
         if platform.system() == 'Windows':
-            return os.path.getctime(path_to_file)
+            return os.path.getmtime(path_to_file)
         else:
             stat = os.stat(path_to_file)
             try:
