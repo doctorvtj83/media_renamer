@@ -76,8 +76,12 @@ class Renamer:
             ]
 
     def get_location(self):
+        print("Retrieving Location name from Open Street Map")
         locator = Nominatim(user_agent='myGeocoder')
+        i = 0
         for file in self.files:
+            i+=1
+            print(f"File {i}/{self.no_files}",end='\r')
             file['Location'] = False
             file['City'] = False
             file['County'] = False
@@ -93,6 +97,9 @@ class Renamer:
 
                         if 'county' in loc.raw['address']:
                             file['County'] = loc.raw['address']['county']
+
+        print("")
+        print("")
 
     def file_create_date(self,path_to_file):
         if platform.system() == 'Windows':
