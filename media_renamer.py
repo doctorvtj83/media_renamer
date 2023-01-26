@@ -157,7 +157,10 @@ class Renamer:
             if f["New_Name"]:
                 old = self.path + '/' + f['Name']
                 new = self.path + '/' + f["New_Name"]
-                os.rename(old,new)
+                try:
+                    os.rename(old,new)
+                except FileNotFoundError:
+                    print(f"{f['New_Name']} could not be found")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -187,4 +190,4 @@ if __name__ == "__main__":
         print("")
         R.rename_files()
 
-print("Program Finished")
+    print("Program Finished")
